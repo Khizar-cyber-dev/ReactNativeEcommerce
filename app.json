@@ -1,28 +1,39 @@
 {
   "expo": {
-    "name": "newProject",
-    "slug": "newProject",
+    "name": "ecommercekhizarasim",
+    "slug": "ecommercekhizarasim",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
+      "package": "com.khizar_asim.ecommerce",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       }
     },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.khizar-asim.ecommerce"
+    },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9c67893a-e7dc-412a-aec7-9be8e23ea791"
+      }
+    },
+    "owner": "khizar_asim",
+    "plugins": [
+      "expo-build-properties"
+    ]
   }
 }
