@@ -1,9 +1,27 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { useCart } from './CartContext';
 
 const Cart = () => {
-  const { cart, totalItems, totalPrice, removeFromCart, updateQuantity, clearCart } = useCart();
+  const { 
+    cart, 
+    totalItems, 
+    totalPrice, 
+    userId,
+    initializeUser,
+    loadUserCart,
+    increaseQuantity, 
+    decreaseQuantity, 
+    deleteFromCart 
+  } = useCart();
+
+  useEffect(() => {
+    if (userId) {
+      loadUserCart(userId);
+    } else {
+      console.warn('User ID is not set. Cannot load cart.');
+    }
+  }, [userId]);
 
   const renderItem = ({ item }) => (
     <View style={styles.itemContainer}>
@@ -12,16 +30,16 @@ const Cart = () => {
         <Text style={styles.itemTitle}>{item.title}</Text>
         <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
         <View style={styles.quantityContainer}>
-          <TouchableOpacity onPress={() => updateQuantity(item.id, item.quantity - 1)}>
+          <TouchableOpacity onPress={() => decreaseQuantity(item.productId)}>
             <Text style={styles.quantityButton}>-</Text>
           </TouchableOpacity>
           <Text style={styles.quantityText}>{item.quantity}</Text>
-          <TouchableOpacity onPress={() => updateQuantity(item.id, item.quantity + 1)}>
+          <TouchableOpacity onPress={() => increaseQuantity(item.productId)}>
             <Text style={styles.quantityButton}>+</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={() => removeFromCart(item.id)}>
-          <Text style={styles.removeButton}>Remove</Text>
+        <TouchableOpacity onPress={() => deleteFromCart(item.productId)}>
+          <Text style={styles.deleteButton}>Delete</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -36,16 +54,13 @@ const Cart = () => {
         <>
           <FlatList
             data={cart}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.productId}
             renderItem={renderItem}
           />
           <View style={styles.summary}>
             <Text style={styles.summaryText}>Total Items: {totalItems}</Text>
             <Text style={styles.summaryText}>Total Price: ${totalPrice.toFixed(2)}</Text>
           </View>
-          <TouchableOpacity style={styles.clearButton} onPress={clearCart}>
-            <Text style={styles.clearButtonText}>Clear Cart</Text>
-          </TouchableOpacity>
         </>
       )}
     </View>
@@ -107,19 +122,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  quantityButton: {
-    fontSize: 18,
-    color: '#6C63FF',
-    paddingHorizontal: 8,
-  },
   quantityText: {
     fontSize: 16,
     marginHorizontal: 8,
-  },
-  removeButton: {
-    fontSize: 14,
-    color: '#E53E3E',
-    marginTop: 8,
   },
   summary: {
     marginTop: 16,
@@ -133,17 +138,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: '#2D3748',
   },
-  clearButton: {
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: '#E53E3E',
-    borderRadius: 8,
-    alignItems: 'center',
+  quantityButton: {
+    fontSize: 18,
+    color: '#6C63FF',
+    paddingHorizontal: 8,
   },
-  clearButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+  deleteButton: {
+    fontSize: 14,
+    color: '#E53E3E',
+    marginTop: 8,
   },
 });
 

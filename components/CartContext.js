@@ -1,86 +1,129 @@
-import React, { createContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { getCart, getProducts, getCurrentUser, updateProductQuantity, deleteProduct } from '../services/api/appwrite';
 
-export const CartContext = createContext();
+const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
+  const [userId, setUserId] = useState(null);
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    const loadCart = async () => {
+    const loadProducts = async () => {
       try {
-        const storedCart = await AsyncStorage.getItem('cart');
-        if (storedCart) setCart(JSON.parse(storedCart));
+        const productsData = await getProducts();
+        setProducts(productsData);
       } catch (error) {
-        console.log('Error loading cart:', error);
+        console.error('Error loading products:', error);
       }
     };
-    loadCart();
+    
+    loadProducts();
   }, []);
 
   useEffect(() => {
-    const saveCart = async () => {
+    const fetchCurrentUser = async () => {
       try {
-        await AsyncStorage.setItem('cart', JSON.stringify(cart));
+        const currentUser = await getCurrentUser();
+        if (currentUser) {
+          initializeUser(currentUser.$id);
+        } else {
+          console.warn('No user is logged in.');
+        }
       } catch (error) {
-        console.log('Error saving cart:', error);
+        console.error('Error fetching current user:', error);
       }
     };
-    saveCart();
-  }, [cart]);
 
-  const addToCart = (product) => {
-    setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.id === product.id);
-      if (existingItem) {
-        return prevCart.map(item =>
-          item.id === product.id 
-            ? { ...item, quantity: item.quantity + 1 } 
-            : item
-        );
-      }
-      return [...prevCart, { ...product, quantity: 1 }];
-    });
-  };
+    fetchCurrentUser();
+  }, []);
 
-  const removeFromCart = (productId) => {
-    setCart(prevCart => prevCart.filter(item => item.id !== productId));
-  };
-
-  const updateQuantity = (productId, newQuantity) => {
-    if (newQuantity < 1) {
-      removeFromCart(productId);
+  const initializeUser = (id) => {
+    if (!id) {
+      console.warn('initializeUser called with an invalid ID.');
       return;
     }
-    setCart(prevCart =>
-      prevCart.map(item =>
-        item.id === productId ? { ...item, quantity: newQuantity } : item
-      )
-    );
+    setUserId(id);
+    loadUserCart(id);
   };
 
-  const clearCart = () => {
-    setCart([]);
+  const loadUserCart = async (userId) => {
+    try {
+      const cartData = await getCart(userId);
+      if (cartData && cartData.length > 0) {
+        const formattedCart = cartData.map(product => ({
+          productId: product.$id,
+          title: product.title,
+          price: product.price,
+          image: product.image,
+          quantity: product.quantity || 1,
+        }));
+        setCart(formattedCart);
+      } else {
+        setCart([]);
+      }
+    } catch (error) {
+      console.error('Error loading cart:', error);
+    }
+  };
+
+  const increaseQuantity = async (productId) => {
+    if (!userId) return;
+
+    const product = cart.find(item => item.productId === productId);
+    if (product) {
+      const newQuantity = product.quantity + 1;
+      await updateProductQuantity(userId, productId, newQuantity);
+      setCart(cart.map(item =>
+        item.productId === productId ? { ...item, quantity: newQuantity } : item
+      ));
+    }
+  };
+
+  const decreaseQuantity = async (productId) => {
+    if (!userId) return;
+
+    const product = cart.find(item => item.productId === productId);
+    if (product && product.quantity > 1) {
+      const newQuantity = product.quantity - 1;
+      await updateProductQuantity(userId, productId, newQuantity);
+      setCart(cart.map(item =>
+        item.productId === productId ? { ...item, quantity: newQuantity } : item
+      ));
+    } else if (product && product.quantity === 1) {
+      await deleteProduct(userId, productId);
+      setCart(cart.filter(item => item.productId !== productId));
+    }
+  };
+
+  const deleteFromCart = async (productId) => {
+    if (!userId) return;
+
+    await deleteProduct(userId, productId);
+    setCart(cart.filter(item => item.productId !== productId));
   };
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   return (
-    <CartContext.Provider 
-      value={{ 
-        cart, 
-        addToCart, 
-        removeFromCart, 
-        updateQuantity, 
-        clearCart,
+    <CartContext.Provider
+      value={{
+        cart,
         totalItems,
-        totalPrice
+        totalPrice,
+        userId,
+        products,
+        initializeUser,
+        loadUserCart,
+        increaseQuantity,
+        decreaseQuantity,
+        deleteFromCart
       }}
     >
-      {children} 
+      {children}
     </CartContext.Provider>
   );
 };
 
-export const useCart = () => React.useContext(CartContext);
+export const useCart = () => useContext(CartContext);
