@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { width, height } = Dimensions.get('window');
 
 const LandingScreen = ({ navigation }) => {
+
   return (
     <LinearGradient
       colors={['#f8f9fa', '#e9ecef']}
