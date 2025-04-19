@@ -30,8 +30,18 @@ const Cart = () => {
         <Text style={styles.itemTitle}>{item.title}</Text>
         <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
         <View style={styles.quantityContainer}>
-          <TouchableOpacity onPress={() => decreaseQuantity(item.productId)}>
-            <Text style={styles.quantityButton}>-</Text>
+          <TouchableOpacity 
+            onPress={() => decreaseQuantity(item.productId)} 
+            disabled={item.quantity === 1}
+          >
+            <Text 
+              style={[
+                styles.quantityButton, 
+                item.quantity === 1 && styles.disabledButton 
+              ]}
+            >
+              -
+            </Text>
           </TouchableOpacity>
           <Text style={styles.quantityText}>{item.quantity}</Text>
           <TouchableOpacity onPress={() => increaseQuantity(item.productId)}>
@@ -147,6 +157,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#E53E3E',
     marginTop: 8,
+  },
+  disabledButton: {
+    color: '#A0AEC0', // Gray color for disabled button
   },
 });
 

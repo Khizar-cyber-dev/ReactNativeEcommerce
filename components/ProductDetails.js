@@ -8,13 +8,11 @@ import {
   TouchableOpacity 
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useCart } from './CartContext';
 import { createProduct } from '../services/api/appwrite';
 import { getCurrentUser } from '../services/api/appwrite';
 
 const ProductDetails = ({ route, navigation }) => {
   const { product } = route.params;
-  const { addToCart } = useCart(); 
 
   const handleAddToCart = async (quantity) => {
     try {
@@ -35,7 +33,6 @@ const ProductDetails = ({ route, navigation }) => {
         rating: product.rating.rate,
       };
       await createProduct(cartItem); 
-      addToCart(product);
       navigation.navigate('Cart');
     } catch (error) {
       console.error("Error adding product to cart:", error);
@@ -80,7 +77,7 @@ const ProductDetails = ({ route, navigation }) => {
 
       <TouchableOpacity 
         style={styles.addToCartButton}
-        onPress={() => handleAddToCart(1)} // Pass the desired quantity here
+        onPress={() => handleAddToCart(1)} 
       >
         <Text style={styles.addToCartText}>Add to Cart</Text>
       </TouchableOpacity>

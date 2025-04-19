@@ -9,11 +9,11 @@ import {
   ActivityIndicator,
   Dimensions,
   Modal,
-  Pressable,
 } from 'react-native';
 import { useCart } from './CartContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { logoutUser } from '../services/api/appwrite';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 36) / 2;
@@ -60,6 +60,15 @@ const HomeScreen = ({ navigation }) => {
     navigation.navigate('Category', { category });
   };
 
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      navigation.navigate('Auth', { screen: 'AuthForm' });
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
+
   const renderProductItem = ({ item }) => (
     <TouchableOpacity
       onPress={() => navigation.navigate('ProductDetails', { product: item })}
@@ -94,17 +103,25 @@ const HomeScreen = ({ navigation }) => {
     <LinearGradient colors={['#f8f9fa', '#e9ecef']} style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.heading}>🛍️ Our Products</Text>
-        <TouchableOpacity 
-          style={styles.cartButton} 
-          onPress={() => navigation.navigate('Cart')}
-        >
-          <Icon name="shopping-cart" size={24} color="#6C63FF" />
-          {totalItems > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{totalItems}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        <View style={styles.headerIcons}>
+          <TouchableOpacity 
+            style={styles.logoutButton} 
+            onPress={handleLogout}
+          >
+            <Icon name="logout" size={24} color="#E53E3E" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.cartButton} 
+            onPress={() => navigation.navigate('Cart')}
+          >
+            <Icon name="shopping-cart" size={24} color="#6C63FF" />
+            {totalItems > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{totalItems}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Custom Picker Button */}
@@ -192,11 +209,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   heading: {
     fontSize: 24,
     fontWeight: '700',
     color: '#2D3748',
     fontFamily: 'sans-serif-medium',
+  },
+  logoutButton: {
+    padding: 8,
+    marginRight: 8,
   },
   pickerButton: {
     flexDirection: 'row',

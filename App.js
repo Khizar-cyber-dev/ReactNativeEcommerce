@@ -39,7 +39,7 @@ const App = () => {
         <Stack.Navigator initialRouteName={initialRoute}>
           <Stack.Screen 
             name="Auth"
-            component={AuthNavigator}
+            component={AuthNavigator} 
             options={{ headerShown: false }}
           />
           <Stack.Screen
